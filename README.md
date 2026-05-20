@@ -1,5 +1,3 @@
-# AGVSystem-Modelica
-Advanced Modular AGV Digital Twin and Vehicle Dynamics Simulation using Modelica
 # AGVSystem: Modelica-Based Automated Guided Vehicle Digital Twin
 
 A modular Modelica library for simulating an Automated Guided Vehicle (AGV) with vehicle dynamics, tire-ground interaction, sensor noise, actuator models, and controller validation.
