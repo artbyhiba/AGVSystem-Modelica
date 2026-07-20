@@ -99,10 +99,6 @@ AGVSystem
 - `agv.imu.out_accel_x.u`
 - `total_power`, `total_energy`
 
-## Screenshots
-
-Add screenshots in `docs/images/` and reference them here.
-
 ## Future Work
 
 - Path-following control
