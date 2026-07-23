@@ -1,0 +1,139 @@
+within AGVSystem.Vehicles;
+model AGV
+  "Main Vehicle Model: Sensors, Noise, and Modular Control"
+  
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Rectangle(extent={{-100,100},{100,-100}}, lineColor={0,0,0}, fillColor={200,200,200}, fillPattern=FillPattern.Solid),
+      Rectangle(extent={{-80,80},{80,-80}}, lineColor={0,0,0}, fillColor={255,255,255}, fillPattern=FillPattern.Solid),
+      Rectangle(extent={{-100,60},{-60,20}}, lineColor={0,0,0}, fillColor={0,0,0}, fillPattern=FillPattern.Solid), // Wheel L
+      Rectangle(extent={{-100,-20},{-60,-60}}, lineColor={0,0,0}, fillColor={0,0,0}, fillPattern=FillPattern.Solid), // Wheel R
+      Polygon(points={{80,0},{60,20},{60,-20}}, lineColor={0,0,0}, fillColor={0,0,0}, fillPattern=FillPattern.Solid), // Direction Arrow
+      Text(extent={{-100,150},{100,110}}, textString="%name", lineColor={0,0,0})
+    }),
+    Documentation(info="<html>
+<p><strong>Updates:</strong></p>
+<ul>
+    <li><strong>Sensors:</strong> Now includes an IMU and Encoders. The controller uses the noisy encoder feedback.</li>
+    <li><strong>Modular Control:</strong> The controller can be redeclared (PID, PI, Simple).</li>
+    <li><strong>Physics:</strong> Uses strict <code>TranslationalPort</code> for connections.</li>
+    <li><strong>Environment:</strong> Supports <strong>Split-Mu</strong> scenarios (e.g. ice on one side) via <code>ground_left.scenario</code> / <code>ground_right.scenario</code>.</li>
+</ul>
+</html>"));
+
+  parameter Real total_mass = 80;
+  parameter Real inertia_moment_z = 10;
+  parameter Real track_width = 0.6;
+  parameter Real center_of_gravity_height = 0.3;
+  parameter Real wheelbase_effective = 1.0;
+  constant Real g = 9.81;
+
+  Components.DriveUnit left, right;
+  
+  // Replaceable Controller
+  replaceable Controllers.PIDController controller constrainedby Controllers.BaseController;
+  
+  // Split Ground Model
+  Components.GroundModel ground_left, ground_right;
+  
+  // IMU Sensor
+  Sensors.IMU imu;
+
+  input Interfaces.ControlPort vref;
+
+  // States
+  Real velocity_longitudinal(start=0, fixed=true);
+  Real velocity_lateral(start=0, fixed=true);
+  Real yaw_rate(start=0, fixed=true) "Yaw rate [rad/s]"; 
+  
+  // Position
+  Real position_x(start=0, fixed=true);
+  Real position_y(start=0, fixed=true);
+  Real yaw_angle(start=0, fixed=true);
+  
+  // Accelerations
+  Real acceleration_longitudinal;
+  Real acceleration_lateral;
+  
+  // Forces
+  Real normal_force_left, normal_force_right;
+  Real force_longitudinal_total;
+  Real force_lateral_total;
+  
+  // Feedback
+  Real measured_velocity_average;
+
+  // Internal Adapters for proper connection
+  Components.ChassisAdapter adapter_left, adapter_right;
+
+equation
+  // Calculate distinct wheel positions for Ground Model Query
+  ground_left.x = position_x - sin(yaw_angle) * (track_width/2);
+  ground_left.y = position_y + cos(yaw_angle) * (track_width/2);
+  
+  ground_right.x = position_x + sin(yaw_angle) * (track_width/2);
+  ground_right.y = position_y - cos(yaw_angle) * (track_width/2);
+  
+  // Pass locally sampled friction to each wheel
+  left.mu_ground = ground_left.mu;
+  right.mu_ground = ground_right.mu;
+
+  // Global Position kinematics (2D transformation)
+  der(position_x) = velocity_longitudinal*cos(yaw_angle) - velocity_lateral*sin(yaw_angle);
+  der(position_y) = velocity_longitudinal*sin(yaw_angle) + velocity_lateral*cos(yaw_angle);
+  yaw_rate = der(yaw_angle);
+
+  // Wheel kinematic inputs (Local frame) VIA ADAPTERS
+  adapter_left.v[1] = velocity_longitudinal - (track_width/2) * yaw_rate;
+  adapter_left.v[2] = velocity_lateral;
+  
+  adapter_right.v[1] = velocity_longitudinal + (track_width/2) * yaw_rate;
+  adapter_right.v[2] = velocity_lateral;
+  
+  // Connect adapters to DriveUnits
+  connect(adapter_left.flange, left.chassis_contact);
+  connect(adapter_right.flange, right.chassis_contact);
+
+  // Force Summation from wheels
+  // force = adapter.f (Reaction force from wheel)
+  force_longitudinal_total = adapter_left.f[1] + adapter_right.f[1];
+  force_lateral_total = adapter_left.f[2] + adapter_right.f[2];
+
+  // Newton-Euler Equations of Motion (Local Frame)
+  total_mass * (der(velocity_longitudinal) - velocity_lateral * yaw_rate) = force_longitudinal_total;
+  total_mass * (der(velocity_lateral) + velocity_longitudinal * yaw_rate) = force_lateral_total;
+  
+  acceleration_longitudinal = der(velocity_longitudinal);
+  acceleration_lateral = der(velocity_lateral);
+
+  // Moment Balance (Yaw)
+  inertia_moment_z*der(yaw_rate) = (track_width/2)*(adapter_right.f[1] - adapter_left.f[1]);
+
+  // Weight Transfer
+  normal_force_left = total_mass*g/2 - center_of_gravity_height/wheelbase_effective*total_mass*acceleration_longitudinal;
+  normal_force_right = total_mass*g/2 + center_of_gravity_height/wheelbase_effective*total_mass*acceleration_longitudinal;
+
+  left.Fz = normal_force_left;
+  right.Fz = normal_force_right;
+  
+  // IMU Connection (Feed "True" physics to sensor)
+  imu.accel_x_true = acceleration_longitudinal;
+  imu.accel_y_true = acceleration_lateral;
+  imu.yaw_rate_true = yaw_rate;
+
+  // Control Connections (Using Assignments to ensure correct causality)
+  // vref (Input CP) -> controller.ref (Input CP)
+  // controller.out (Output CP) -> left/right.cmd (Input CP)
+  
+  // Since BaseController uses ControlPort, connect() IS valid.
+  // But to be absolutely safe against equation-counting issues:
+  connect(vref, controller.ref);
+  
+  // Sensor Fusion: Simple Average of Wheel Speeds
+  measured_velocity_average = ((left.measured_speed.u + right.measured_speed.u) / 2.0) / 20.0 * 0.1;
+  
+  controller.meas.u = measured_velocity_average;
+
+  connect(controller.out, left.cmd);
+  connect(controller.out, right.cmd);
+end AGV;
