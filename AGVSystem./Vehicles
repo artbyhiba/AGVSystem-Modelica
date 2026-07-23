@@ -1,0 +1,5 @@
+within AGVSystem;
+package Vehicles
+  "Vehicle System Models"
+  extends Modelica.Icons.Package;
+end Vehicles;
