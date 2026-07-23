@@ -1,0 +1,44 @@
+within AGVSystem.Validation;
+model ControlPerformanceTest
+  "Compare PID, PI, and Simple Controllers in Parallel"
+  extends Modelica.Icons.Example;
+
+  annotation (experiment(StartTime=0, StopTime=10, Tolerance=1e-06), Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This test compares three different control strategies side-by-side.</p>
+<p><strong>Configurations:</strong></p>
+<ul>
+    <li><strong>Standard:</strong> Uses the default PID Controller.</li>
+    <li><strong>PI Only:</strong> Uses a PI Controller (No Derivative term).</li>
+    <li><strong>Simple:</strong> Uses a basic Proportional-only controller.</li>
+</ul>
+<p><strong>What to look for:</strong></p>
+<ul>
+    <li><strong>Noise Rejection:</strong> The sensors are noisy. Which controller handles the jitter best?</li>
+    <li><strong>Response Time:</strong> Which one reaches the target speed (1.0 m/s) fastest?</li>
+    <li><strong>Stability:</strong> Do they oscillate or stay smooth?</li>
+</ul>
+</html>"));
+
+  // 1. Default PID
+  Vehicles.AGV agv_pid;
+  
+  // 2. PI Controller
+  Vehicles.AGV agv_pi(
+    redeclare Controllers.PIController controller(Kp=2, Ki=5)
+  );
+  
+  // 3. Simple Controller
+  Vehicles.AGV agv_simple(
+    redeclare Controllers.SimpleController controller(K=5)
+  );
+  
+  inner Modelica.Blocks.Noise.GlobalSeed globalSeed;
+
+  Modelica.Blocks.Sources.Step refStep(height=1.0, startTime=1.0);
+
+equation
+  agv_pid.vref.u = refStep.y;
+  agv_pi.vref.u = refStep.y;
+  agv_simple.vref.u = refStep.y;
+end ControlPerformanceTest;
