@@ -1,0 +1,5 @@
+within AGVSystem;
+package Utilities
+  "Utility Components for Validation and Testing"
+  extends Modelica.Icons.Package;
+end Utilities;
