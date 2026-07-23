@@ -1,0 +1,32 @@
+within AGVSystem.Actuators;
+model Geartrain
+  "Mechanical Transmission"
+  
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Rectangle(extent={{-80,80},{80,-80}}, lineColor={0,0,0}, fillColor={200,200,200}, fillPattern=FillPattern.Solid),
+      Ellipse(extent={{-60,60},{0,0}}, lineColor={0,0,0}, fillColor={100,100,100}),
+      Ellipse(extent={{0,0},{60,-60}}, lineColor={0,0,0}, fillColor={100,100,100}),
+      Text(extent={{-100,150},{100,110}}, textString="%name", lineColor={0,0,0})
+    }),
+    Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This is the gearbox connecting the motor to the wheel.</p>
+<p><strong>How does it work?</strong></p>
+<ul>
+    <li>It reduces the speed of the motor to increase the torque (turning force) at the wheel.</li>
+    <li>Ratio = 20 means the motor spins 20 times for every 1 turn of the wheel.</li>
+    <li>It conserves power: Power In = Power Out (minus efficiency losses, if modeled).</li>
+</ul>
+</html>"));
+
+  parameter Real ratio = 20;
+
+  Interfaces.RotationalPort flange_in;
+  Interfaces.RotationalPort flange_out;
+
+equation
+  flange_out.w = flange_in.w / ratio;
+  // Energy conservation: ratio * t_in + t_out = 0
+  ratio * flange_in.tau + flange_out.tau = 0;
+end Geartrain;
