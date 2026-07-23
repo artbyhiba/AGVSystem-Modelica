@@ -1,0 +1,50 @@
+within AGVSystem.Validation;
+model TractionTest
+  "Validates Longitudinal and Lateral Traction Dynamics (Slip Curves)"
+  extends Modelica.Icons.Example;
+
+  annotation (experiment(StartTime=0, StopTime=10, Tolerance=1e-06), Documentation(info="<html>
+<p>This test isolates the <code>WheelGround</code> component to validate its traction characteristics.</p>
+<p><strong>Simulation Setup:</strong></p>
+<ul>
+    <li>Simulation Time: 10s</li>
+    <li>Wheel Load: 400N (approx 40kg)</li>
+    <li>Wheel Speed: Constant 10 rad/s</li>
+    <li>Ground Velocity: Ramps from 0 to 2 m/s (Longitudinal) and 0 to 0.5 m/s (Lateral)</li>
+</ul>
+<p><strong>Interpretation of Results:</strong></p>
+<ul>
+    <li><strong>Longitudinal Slip:</strong> Plot <code>wheel.slip_longitudinal</code> vs <code>wheel.chassis_contact.f[1]</code>. It should show a characteristic curve growing to a peak (approx 0.9 * Fz) and then possibly saturating or dropping.</li>
+    <li><strong>Lateral Slip:</strong> After t=6s, <code>wheel.slip_lateral_angle</code> increases. <code>wheel.chassis_contact.f[2]</code> should increase linearly (Cornering Stiffness).</li>
+</ul>
+</html>"));
+
+  Components.WheelGround wheel;
+  Utilities.IdealSpeedSource speedSource;
+  Modelica.Blocks.Sources.Constant speedCommand(k=10);
+  
+  Modelica.Blocks.Sources.Ramp velocityRamp(height=2.0, duration=5, startTime=1);
+  Modelica.Blocks.Sources.Constant FzInfo(k=400);
+  
+  Modelica.Blocks.Sources.Ramp lateralVelocityRamp(height=0.5, duration=5, startTime=6);
+  
+  // Constant 'mu' for this isolated test
+  Modelica.Blocks.Sources.Constant muInfo(k=0.9);
+  
+  // Adapter to impose velocity and measure force on the new Port
+  Components.ChassisAdapter adapter;
+
+equation
+  connect(speedCommand.y, speedSource.w_ref);
+  connect(speedSource.flange, wheel.shaft);
+  
+  // Connect Chassis Adapter to Wheel Port
+  connect(adapter.flange, wheel.chassis_contact);
+  
+  // Impose Velocities
+  adapter.v[1] = velocityRamp.y;
+  adapter.v[2] = lateralVelocityRamp.y;
+  
+  wheel.Fz = FzInfo.y;
+  wheel.mu_ground = muInfo.y;
+end TractionTest;
