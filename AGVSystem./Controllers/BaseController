@@ -1,0 +1,6 @@
+within AGVSystem.Controllers;
+partial model BaseController
+  input Interfaces.ControlPort ref;
+  input Interfaces.ControlPort meas;
+  output Interfaces.ControlPort out;
+end BaseController;
