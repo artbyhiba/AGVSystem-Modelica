@@ -1,4 +1,0 @@
-within AGVSystem;
-package Controllers
-  extends Modelica.Icons.Package;
-end Controllers;
