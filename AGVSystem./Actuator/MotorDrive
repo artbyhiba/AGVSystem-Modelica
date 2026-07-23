@@ -1,0 +1,29 @@
+within AGVSystem.Actuators;
+model MotorDriver
+  "Power Electronics / ESC"
+  
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Rectangle(extent={{-80,80},{80,-80}}, lineColor={0,0,0}, fillColor={255,255,0}, fillPattern=FillPattern.Solid),
+      Text(extent={{-70,40},{70,-40}}, textString="ESC", lineColor={0,0,0}),
+      Text(extent={{-100,150},{100,110}}, textString="%name", lineColor={0,0,0})
+    }),
+    Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This represents the electronic speed controller (ESC) or motor driver.</p>
+<p><strong>How does it work?</strong></p>
+<ul>
+    <li>It takes a low-power control signal (e.g., 0.0 to 1.0 from the controller).</li>
+    <li>It switches the high-power Battery Voltage (e.g., 24V) to drive the motor.</li>
+    <li>Output Voltage = Battery Voltage * Duty Cycle (Command).</li>
+</ul>
+</html>"));
+
+  parameter Real Vbatt = 24;
+
+  input Interfaces.ControlPort cmd;
+  output Interfaces.ControlPort pwm;
+
+equation
+  pwm.u = Vbatt * cmd.u;
+end MotorDriver;
