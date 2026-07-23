@@ -1,0 +1,35 @@
+within AGVSystem.Controllers;
+model PIDController
+  "Proportional-Integral-Derivative Controller"
+  extends BaseController;
+  
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Rectangle(extent={{-80,80},{80,-80}}, lineColor={0,0,0}, fillColor={255,255,255}, fillPattern=FillPattern.Solid),
+      Text(extent={{-70,40},{70,-40}}, textString="PID", lineColor={0,0,255}),
+      Text(extent={{-100,150},{100,110}}, textString="%name", lineColor={0,0,0})
+    }),
+    Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This is the 'brain' that controls the wheel speed.</p>
+<p><strong>How does it work?</strong></p>
+<ul>
+    <li>It looks at the error: <code>Error = Target Speed - Actual Speed</code>.</li>
+    <li><strong>P (Proportional):</strong> Reacts to the current error. Large error = Large push.</li>
+    <li><strong>I (Integral):</strong> Reacts to past errors. If the speed has been too low for a while, it pushes harder to catch up. Eliminates steady-state error.</li>
+    <li><strong>D (Derivative):</strong> Reacts to the rate of change. Dampens the response to prevent overshooting.</li>
+</ul>
+</html>"));
+
+  parameter Real Kp=2, Ki=4, Kd=0.1;
+
+  Real xi(start=0);
+  Real e;
+  Real de;
+
+equation
+  e = ref.u - meas.u;
+  der(xi) = e;
+  de = der(e);
+  out.u = Kp*e + Ki*xi + Kd*de;
+end PIDController;
