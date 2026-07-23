@@ -1,0 +1,50 @@
+within AGVSystem.Components;
+model GroundModel
+  "Environment Definition (Terrain & Friction)"
+  
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Rectangle(extent={{-100,100},{100,-100}}, lineColor={0,0,0}, fillColor={255,255,255}, fillPattern=FillPattern.Solid),
+      Polygon(points={{-100,-50},{-50,0},{0,-80},{50,-20},{100,-60},{100,-100},{-100,-100}}, lineColor={0,0,0}, fillColor={0,128,0}, fillPattern=FillPattern.Solid), // Terrain
+      Text(extent={{-100,150},{100,110}}, textString="%name", lineColor={0,0,0}),
+      Text(extent={{-80,80},{80,40}}, textString="Ground", lineColor={0,0,0})
+    }),
+    Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This model defines the environment the AGV drives on.</p>
+<p><strong>How does it work?</strong></p>
+<ul>
+    <li>It takes a specific coordinate (X, Y) as input.</li>
+    <li>It returns the height (Z) of the ground and the friction coefficient (mu).</li>
+    <li><strong>Scenarios:</strong> You can choose between:
+        <ul>
+            <li><code>scenario = 0</code>: Longitudinal friction step (0.9 -> 0.6).</li>
+            <li><code>scenario = 1</code>: <strong>Split-Mu</strong> (Left=0.9, Right=0.2) to simulate ice patches.</li>
+        </ul>
+    </li>
+</ul>
+</html>"));
+
+  input Real x;
+  input Real y;
+
+  output Real z;
+  output Real mu;
+
+  parameter Integer scenario = 1 "0: Longitudinal Friction Step, 1: Split-Mu (Left High, Right Low)";
+  
+equation
+  z = 0.02*sin(0.5*x);
+  
+  if scenario == 0 then
+    // Longitudinal step: High friction (0.9) to Low friction (0.6)
+    mu = if x < 2 then 0.9 else 0.6;
+    
+  elseif scenario == 1 then
+    // Split-Mu: Left Wheel (y>0) is Rubber (0.9), Right Wheel (y<0) is Glass (0.2)
+    mu = if y > 0 then 0.9 else 0.2;
+    
+  else
+    mu = 0.8;
+  end if;
+end GroundModel;
