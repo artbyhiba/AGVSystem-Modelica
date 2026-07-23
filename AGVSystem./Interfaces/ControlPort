@@ -1,0 +1,19 @@
+within AGVSystem.Interfaces;
+connector ControlPort
+  "Signal Interface"
+  
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Polygon(points={{-100,50},{-100,-50},{100,0}}, lineColor={0,0,127}, fillColor={0,0,255}, fillPattern=FillPattern.Solid)
+    }),
+    Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This connects control signals (like data cables). It carries information, not physical energy.</p>
+<p><strong>Variables:</strong></p>
+<ul>
+    <li><code>u</code>: The signal value (Real number).</li>
+</ul>
+</html>"));
+
+  Real u;
+end ControlPort;
