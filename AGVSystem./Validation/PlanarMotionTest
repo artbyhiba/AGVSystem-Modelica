@@ -17,7 +17,6 @@ model PlanarMotionTest
     <li>Monitor <code>agv.velocity_longitudinal</code> to ensure it tracks the reference.</li>
 </ul>
 </html>"));
-
   Vehicles.AGV agv;
   Modelica.Blocks.Sources.Constant vref(k=0.5);
   
