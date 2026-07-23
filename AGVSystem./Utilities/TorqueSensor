@@ -1,0 +1,13 @@
+within AGVSystem.Utilities;
+model TorqueSensor
+  "Ideal torque sensor"
+  
+  Interfaces.RotationalPort flange_a;
+  Interfaces.RotationalPort flange_b;
+  output Real tau "Measured torque";
+
+equation
+  flange_a.w = flange_b.w;
+  flange_a.tau + flange_b.tau = 0; // Massless
+  tau = flange_a.tau;
+end TorqueSensor;
