@@ -1,0 +1,11 @@
+within AGVSystem.Utilities;
+model IdealSpeedSource
+  "Ideal source of angular velocity"
+  
+  Interfaces.RotationalPort flange;
+  Modelica.Blocks.Interfaces.RealInput w_ref "Reference angular velocity [rad/s]";
+  
+equation
+  flange.w = w_ref;
+  // Torque is determined by the load
+end IdealSpeedSource;
