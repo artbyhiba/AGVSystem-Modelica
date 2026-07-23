@@ -1,0 +1,39 @@
+within AGVSystem.Examples;
+model CompleteFunctionalTest
+  "System-Level Functional Validation of the AGV"
+  extends Modelica.Icons.Example;
+
+  annotation (experiment(StartTime=0, StopTime=10, Tolerance=1e-06), Documentation(info="<html>
+<p>This model performs a <strong>Complete Functional Test</strong> of the entire AGV system, integrating all sub-components (Controller, Motors, Transmission, Wheels, Chassis) into a single simulation.</p>
+
+<h3>What does it do?</h3>
+<p>It simulates the AGV receiving a command to start moving. specifically:</p>
+<ul>
+    <li>At <strong>t = 0s</strong>, the AGV is at rest.</li>
+    <li>At <strong>t = 1s</strong>, a command is sent to accelerate to <strong>1.0 m/s</strong> (Step Input).</li>
+    <li>The simulation runs for <strong>10 seconds</strong> to observe the acceleration and steady-state behavior.</li>
+</ul>
+
+<h3>What should I plot?</h3>
+<p>To verify the system functionality, plot the following variables together:</p>
+<ol>
+    <li><strong>Reference Speed (Command):</strong> <code>agv.vref.u</code> (The target speed)</li>
+    <li><strong>Actual Speed (Response):</strong> <code>agv.velocity_longitudinal</code> (The speed the AGV actually achieves)</li>
+</ol>
+
+<h3>How to interpret the results?</h3>
+<ul>
+    <li><strong>Response Time:</strong> You should see the 'Actual Speed' curve rise smoothly after t=1s to meet the 'Reference Speed'. It should not jump instantly (that would be physically impossible).</li>
+    <li><strong>Stability:</strong> The speed should settle at 1.0 m/s without violent oscillating or shaking. A smooth line means the control system is tuned correctly.</li>
+    <li><strong>Accuracy:</strong> The 'Actual Speed' should match the 'Reference Speed' very closely after a few seconds. If there is a large gap, the controller may need tuning or the motors may be too weak for the load.</li>
+</ul>
+</html>"));
+
+  Vehicles.AGV agv;
+  Modelica.Blocks.Sources.Step speedStep(height=1, startTime=1);
+  
+  inner Modelica.Blocks.Noise.GlobalSeed globalSeed;
+
+equation
+  agv.vref.u = speedStep.y;
+end CompleteFunctionalTest;
