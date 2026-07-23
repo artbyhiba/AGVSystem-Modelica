@@ -14,6 +14,8 @@ This project implements a digital twin of an AGV in Modelica. The system include
 - Replaceable P, PI, and PID controllers
 - Validation and example models for subsystem and system-level testing
 
+<img width="3179" height="4494" alt="Digital Twin Presentation" src="https://github.com/user-attachments/assets/de6e5ace-733a-42bd-89bd-26413f2a2ff7" />
+
 ## Main Features
 
 - Modular AGV architecture using package-based Modelica design
