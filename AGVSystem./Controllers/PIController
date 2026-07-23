@@ -1,0 +1,12 @@
+within AGVSystem.Controllers;
+model PIController
+  extends BaseController;
+  parameter Real Kp = 2;
+  parameter Real Ki = 5;
+
+  Real xi(start=0);
+
+equation
+  der(xi) = ref.u - meas.u;
+  out.u = Kp*(ref.u - meas.u) + Ki*xi;
+end PIController;
