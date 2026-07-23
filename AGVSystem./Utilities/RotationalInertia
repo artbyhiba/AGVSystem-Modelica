@@ -1,0 +1,22 @@
+within AGVSystem.Utilities;
+model RotationalInertia
+  "Rotational inertia"
+  parameter Real J=1 "Moment of inertia [kg.m2]";
+  
+  Interfaces.RotationalPort flange_a;
+  Interfaces.RotationalPort flange_b;
+  
+  Real w "Angular velocity";
+  Real a "Angular acceleration";
+
+equation
+  w = flange_a.w;
+  w = flange_b.w;
+  a = der(w);
+  
+  // Torque balance: Sum(Torques In) = J*a
+  // Convention: tau is positive flowing INTO the model? 
+  // RotationalPort defines 'flow Real tau'. Typically sum(flow) = 0 at node.
+  // Component equation: flange_a.tau + flange_b.tau = J*der(w)
+  flange_a.tau + flange_b.tau = J * a;
+end RotationalInertia;
