@@ -1,0 +1,28 @@
+within AGVSystem.Validation;
+model PlanarMotionTest
+  "Validates Planar Body Dynamics (Yaw, Turning)"
+  extends Modelica.Icons.Example;
+
+  annotation (experiment(StartTime=0, StopTime=10, Tolerance=1e-06), Documentation(info="<html>
+<p>This test validates the planar motion capabilities of the AGV model.</p>
+<p><strong>Simulation Setup:</strong></p>
+<ul>
+    <li>Simulation Time: 10s</li>
+    <li>Input: Constant velocity reference (0.5 m/s)</li>
+</ul>
+<p><strong>Interpretation of Results:</strong></p>
+<ul>
+    <li>Verify that the AGV maintains a straight trajectory (Yaw Rate = 0) under symmetric conditions.</li>
+    <li>Check <code>agv.position_x</code> and <code>agv.position_y</code> to confirm correct global integration.</li>
+    <li>Monitor <code>agv.velocity_longitudinal</code> to ensure it tracks the reference.</li>
+</ul>
+</html>"));
+
+  Vehicles.AGV agv;
+  Modelica.Blocks.Sources.Constant vref(k=0.5);
+  
+  inner Modelica.Blocks.Noise.GlobalSeed globalSeed;
+
+equation
+  agv.vref.u = vref.y;
+end PlanarMotionTest;
