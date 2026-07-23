@@ -1,0 +1,37 @@
+within AGVSystem.Sensors;
+model Encoder
+  "Wheel Speed Sensor"
+  
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Ellipse(extent={{-60,60},{60,-60}}, lineColor={0,0,0}, fillColor={255,255,255}, fillPattern=FillPattern.Solid),
+      Line(points={{0,60},{0,-60}}, color={0,0,0}),
+      Line(points={{-60,0},{60,0}}, color={0,0,0}),
+      Text(extent={{-100,150},{100,110}}, textString="%name", lineColor={0,0,0}),
+      Text(extent={{-70,90},{70,60}}, textString="Sub-C", lineColor={0,0,127}) // Pulse symbol usually
+    }),
+    Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This sensor measures how fast the wheel is spinning.</p>
+<p><strong>How does it work?</strong></p>
+<ul>
+    <li>It connects to the wheel shaft.</li>
+    <li>It outputs the angular velocity (speed).</li>
+    <li><strong>Simulation Feature:</strong> It adds 'Gaussian Noise' to the measurement to simulate real-world sensor imperfection. This tests the controller&#39;s ability to filter out bad data.</li>
+</ul>
+</html>"));
+
+  parameter Real resolution = 1024 "Pulses per revolution (0 for infinite)";
+  parameter Real noise_variance = 0.001;
+  
+  Interfaces.RotationalPort flange;
+  output Interfaces.ControlPort out;
+  
+  Modelica.Blocks.Noise.NormalNoise generator(samplePeriod=0.01, mu=0, sigma=sqrt(noise_variance));
+
+equation
+  flange.tau = 0; // Ideal sensor (no load)
+  
+  // Add noise to measurement
+  out.u = flange.w + generator.y;
+end Encoder;
