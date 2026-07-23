@@ -1,0 +1,22 @@
+within AGVSystem.Interfaces;
+connector TranslationalPort
+  "2D Mechanical Interface for Chassis-Wheel Interaction"
+  
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Rectangle(extent={{-100,100},{100,-100}}, lineColor={0,128,0}, fillColor={255,255,255}, fillPattern=FillPattern.Solid),
+      Polygon(points={{-80,40},{-80,-40},{80,0}}, lineColor={0,128,0}, fillColor={0,128,0}, fillPattern=FillPattern.Solid)
+    }),
+    Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This connects the chassis to the wheel module.</p>
+<p><strong>Variables:</strong></p>
+<ul>
+    <li><code>v[2]</code>: Velocity vector (vx, vy) [m/s].</li>
+    <li><code>f[2]</code>: Force vector (fx, fy) [N].</li>
+</ul>
+</html>"));
+
+  Real v[2] "Velocity vector [vx, vy] (m/s)";
+  flow Real f[2] "Force vector [fx, fy] (N)";
+end TranslationalPort;
