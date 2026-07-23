@@ -1,0 +1,33 @@
+within AGVSystem.Validation;
+model ElectricalTest
+  "Validates Electric Motor Dynamics: Back-EMF and Torque Generation"
+  extends Modelica.Icons.Example;
+
+  annotation (experiment(StartTime=0, StopTime=1, Tolerance=1e-06), Documentation(info="<html>
+<p>This test validates the electrical dynamics of the BLDC motor model.</p>
+<p><strong>Simulation Setup:</strong></p>
+<ul>
+<li>Simulation Time: 1s</li>
+<li>Input: 24V Step at t=0.1s</li>
+<li>Load: Rotational Inertia (0.01 kg.m2)</li>
+</ul>
+<p><strong>Interpretation of Results:</strong></p>
+<ul>
+<li><strong>Current:</strong> Expect a high inrush current when voltage is applied (Limited by Resistance).</li>
+<li><strong>Back-EMF:</strong> As the motor speeds up, Back-EMF increases, reducing the current.</li>
+<li><strong>Torque:</strong> Torque is proportional to current. It should accelerate the inertia until steady state is reached (if damping exists) or continue accelerating (if no damping).</li>
+</ul>
+</html>"));
+
+  Actuators.BLDCMotor motor;
+  Modelica.Blocks.Sources.Step voltageStep(height=24, startTime=0.1);
+  
+  Utilities.RotationalInertia load(J=0.01);
+  Utilities.TorqueSensor sensor;
+
+equation
+  motor.voltage.u = voltageStep.y;
+  
+  connect(motor.shaft, sensor.flange_a);
+  connect(sensor.flange_b, load.flange_a);
+end ElectricalTest;
