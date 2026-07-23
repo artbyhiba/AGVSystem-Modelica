@@ -1,0 +1,8 @@
+within AGVSystem.Controllers;
+model SimpleController
+  extends BaseController;
+  parameter Real K = 1;
+
+equation
+  out.u = K * (ref.u - meas.u);
+end SimpleController;
