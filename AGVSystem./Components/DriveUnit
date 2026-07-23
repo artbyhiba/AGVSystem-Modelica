@@ -1,0 +1,54 @@
+within AGVSystem.Components;
+model DriveUnit
+  "Assembly of Motor, Gearbox, Wheel, and Sensor"
+
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Rectangle(extent={{-100,100},{100,-100}}, lineColor={0,0,0}, fillColor={255,255,255}, fillPattern=FillPattern.Solid),
+      Rectangle(extent={{-80,60},{-20,-60}}, lineColor={0,0,0}, fillColor={0,128,255}, fillPattern=FillPattern.Solid), // Motor
+      Rectangle(extent={{-20,40},{40,-40}}, lineColor={0,0,0}, fillColor={128,128,128}, fillPattern=FillPattern.Solid), // Gear
+      Ellipse(extent={{40,60},{100,-60}}, lineColor={0,0,0}, fillColor={50,50,50}, fillPattern=FillPattern.Solid), // Wheel
+      Text(extent={{-100,150},{100,110}}, textString="%name", lineColor={0,0,0})
+    }),
+    Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This component represents one full drive assembly for a single wheel.</p>
+<p><strong>Updates:</strong></p>
+<ul>
+    <li>Now uses <code>TranslationalPort</code> for physical connection.</li>
+    <li>Includes an <strong>Encoder</strong> sensor that outputs speed with realistic noise.</li>
+</ul>
+</html>"));
+
+  Actuators.BLDCMotor motor;
+  Actuators.Geartrain gear;
+  Components.WheelGround wheel;
+  Actuators.MotorDriver driver;
+  Sensors.Encoder encoder(resolution=1024, noise_variance=0.005);
+  
+  input Interfaces.ControlPort cmd;
+  output Interfaces.ControlPort measured_speed; // Noisy feedback
+  
+  Interfaces.TranslationalPort chassis_contact;
+  
+  input Real Fz;
+  
+  // Input from Environment
+  input Real mu_ground;
+
+equation
+  connect(cmd, driver.cmd);
+  connect(driver.pwm, motor.voltage);
+  
+  // Connect Encoder to Motor Shaft
+  connect(motor.shaft, encoder.flange);
+  connect(encoder.out, measured_speed);
+  
+  connect(motor.shaft, gear.flange_in);
+  connect(gear.flange_out, wheel.shaft);
+  
+  connect(wheel.chassis_contact, chassis_contact);
+  
+  wheel.Fz = Fz;
+  wheel.mu_ground = mu_ground;
+end DriveUnit;
