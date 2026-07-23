@@ -1,0 +1,4 @@
+within AGVSystem;
+package Actuators
+  extends Modelica.Icons.Package;
+end Actuators;
