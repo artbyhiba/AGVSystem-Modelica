@@ -1,0 +1,44 @@
+within AGVSystem.Sensors;
+model IMU
+  "Inertial Measurement Unit"
+  
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Rectangle(extent={{-80,80},{80,-80}}, lineColor={0,0,0}, fillColor={0,255,255}, fillPattern=FillPattern.Solid),
+      Text(extent={{-70,40},{70,-40}}, textString="IMU", lineColor={0,0,0}),
+      Text(extent={{-100,150},{100,110}}, textString="%name", lineColor={0,0,0})
+    }),
+    Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This sensor measures the acceleration and rotation rate of the chassis.</p>
+<p><strong>How does it work?</strong></p>
+<ul>
+    <li>It measures Longitudinal Acceleration (forward/back).</li>
+    <li>It measures Lateral Acceleration (side-to-side).</li>
+    <li>It measures Yaw Rate (turning speed).</li>
+    <li>Like the Encoder, it injects random noise to simulate a real, imperfect sensor.</li>
+</ul>
+</html>"));
+
+  parameter Real noise_accel_var = 0.01;
+  parameter Real noise_gyro_var = 0.001;
+  
+  // Physical Inputs (Truth)
+  input Real accel_x_true;
+  input Real accel_y_true;
+  input Real yaw_rate_true;
+  
+  // Sensor Outputs (Noisy)
+  output Interfaces.ControlPort out_accel_x;
+  output Interfaces.ControlPort out_accel_y;
+  output Interfaces.ControlPort out_gyro;
+  
+  Modelica.Blocks.Noise.NormalNoise noise_ax(samplePeriod=0.01, mu=0, sigma=sqrt(noise_accel_var));
+  Modelica.Blocks.Noise.NormalNoise noise_ay(samplePeriod=0.01, mu=0, sigma=sqrt(noise_accel_var));
+  Modelica.Blocks.Noise.NormalNoise noise_wz(samplePeriod=0.01, mu=0, sigma=sqrt(noise_gyro_var));
+
+equation
+  out_accel_x.u = accel_x_true + noise_ax.y;
+  out_accel_y.u = accel_y_true + noise_ay.y;
+  out_gyro.u = yaw_rate_true + noise_wz.y;
+end IMU;
