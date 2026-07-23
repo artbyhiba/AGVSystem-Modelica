@@ -1,5 +1,0 @@
-within AGVSystem;
-package Examples
-  "Runnable Example Models"
-  extends Modelica.Icons.Package;
-end Examples;
