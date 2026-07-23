@@ -1,0 +1,44 @@
+within AGVSystem.Validation;
+model EnergyAnalysisTest
+  "Validates Energy Consumption"
+  extends Modelica.Icons.Example;
+
+  annotation (experiment(StartTime=0, StopTime=20, Tolerance=1e-06), Documentation(info="<html>
+<p>This test calculates the mechanical power and energy consumption of the AGV during a drive cycle.</p>
+<p><strong>Simulation Setup:</strong></p>
+<ul>
+    <li>Simulation Time: 20s</li>
+    <li>Drive Cycle: Trapezoidal profile (Accel, Cruise, Decel, Stop)</li>
+</ul>
+<p><strong>Interpretation of Results:</strong></p>
+<ul>
+    <li><strong>Power:</strong> <code>total_power</code> shows instantaneous power (Force x Velocity). Positive during acceleration, negative during regenerative braking (if supported) or deceleration.</li>
+    <li><strong>Energy:</strong> <code>total_energy</code> integrates power over time to show total consumption in Joules.</li>
+</ul>
+</html>"));
+
+  Vehicles.AGV agv;
+  Modelica.Blocks.Sources.Trapezoid driveCycle(amplitude=1.0, rising=2, width=10, falling=2, period=20);
+  
+  inner Modelica.Blocks.Noise.GlobalSeed globalSeed;
+  
+  Real power_draw_left;
+  Real power_draw_right;
+  Real total_power;
+  Real total_energy(start=0, fixed=true);
+
+equation
+  agv.vref.u = driveCycle.y;
+  
+  // Access power via the Chassis Adapter variables in the AGV
+  // Power = Force * Velocity
+  // Note: force[1] is longitudinal. 
+  // adapter.f is force ON chassis. 
+  // If chassis moves forward (v>0) and force pushes forward (f>0), power is positive.
+  
+  power_draw_left = agv.adapter_left.f[1] * agv.adapter_left.v[1];
+  power_draw_right = agv.adapter_right.f[1] * agv.adapter_right.v[1];
+  
+  total_power = power_draw_left + power_draw_right;
+  der(total_energy) = total_power;
+end EnergyAnalysisTest;
