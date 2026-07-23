@@ -1,0 +1,12 @@
+within AGVSystem.Components;
+model ChassisAdapter
+  "Adapter to interface TranslationalPort with Causal Equations"
+  
+  Interfaces.TranslationalPort flange;
+  input Real v[2];
+  output Real f[2];
+
+equation
+  flange.v = v;
+  f = -flange.f; // Output the force exerted BY the wheel ON the chassis
+end ChassisAdapter;
