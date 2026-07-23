@@ -1,0 +1,69 @@
+within AGVSystem.Components;
+model WheelGround
+  "Tire-Road Interaction Model"
+  
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Ellipse(extent={{-60,60},{60,-60}}, lineColor={0,0,0}, fillColor={50,50,50}, fillPattern=FillPattern.Solid),
+      Line(points={{-100,-60},{100,-60}}, color={0,0,0}, thickness=2), // Ground Line
+      Text(extent={{-100,150},{100,110}}, textString="%name", lineColor={0,0,0}),
+      Text(extent={{-40,20},{40,-20}}, textString="Tire", lineColor={255,255,255})
+    }),
+    Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This model calculates the physics between the tire and the road surface. It determines if the wheel grips or slips.</p>
+<p><strong>How does it work?</strong></p>
+<ul>
+    <li>It compares the wheel's spinning speed to the vehicle's actual speed (via TranslationalPort).</li>
+    <li>It calculates Traction Force based on friction.</li>
+    <li>It applies this force back to the chassis through the port.</li>
+</ul>
+</html>"));
+
+  parameter Real wheel_radius = 0.1;
+  parameter Real wheel_inertia = 0.01;
+  parameter Real viscous_friction = 0.002;
+  parameter Real friction_coefficient_peak_default = 0.9;
+  parameter Real cornering_stiffness = 5000;
+  parameter Real slip_epsilon = 0.05;
+
+  Interfaces.RotationalPort shaft;
+  Interfaces.TranslationalPort chassis_contact;
+
+  input Real Fz;
+  
+  // New input for variable friction from GroundModel
+  input Real mu_ground; 
+
+  Real slip_longitudinal;
+  Real slip_lateral_angle;
+  Real friction_coefficient_current;
+  Real force_traction_longitudinal;
+  Real force_traction_lateral;
+  Real vx, vy;
+  Real w(start=0, fixed=true);
+
+equation
+  w = shaft.w;
+    
+  // Read velocity from connector
+  vx = chassis_contact.v[1];
+  vy = chassis_contact.v[2];
+
+  // Longitudinal Slip
+  slip_longitudinal = (w*wheel_radius - vx) / max(abs(vx), slip_epsilon);
+  
+  friction_coefficient_current = mu_ground * tanh(10*slip_longitudinal);
+  force_traction_longitudinal = friction_coefficient_current * Fz;
+
+  // Lateral Slip (Linear approximation)
+  slip_lateral_angle = -atan2(vy, max(abs(vx), 0.1));
+  force_traction_lateral = cornering_stiffness * slip_lateral_angle;
+  
+  // Rotational Dynamics
+  wheel_inertia*der(w) = shaft.tau - force_traction_longitudinal*wheel_radius - viscous_friction*w;
+  
+  // Apply forces to connector (Positive Traction Pushes Chassis Forward)
+  chassis_contact.f[1] = force_traction_longitudinal;
+  chassis_contact.f[2] = force_traction_lateral;
+end WheelGround;
