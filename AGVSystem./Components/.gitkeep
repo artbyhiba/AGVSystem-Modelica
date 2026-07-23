@@ -1,0 +1,5 @@
+within AGVSystem;
+package Components
+  "Physical Subsystems and Components"
+  extends Modelica.Icons.Package;
+end Components;
