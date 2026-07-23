@@ -1,1 +1,5 @@
-
+within AGVSystem;
+package Validation
+  "Model Validation and Capability Checks"
+  extends Modelica.Icons.Package;
+end Validation;
