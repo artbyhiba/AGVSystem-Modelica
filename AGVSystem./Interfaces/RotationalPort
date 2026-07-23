@@ -1,0 +1,23 @@
+within AGVSystem.Interfaces;
+connector RotationalPort
+  "Custom Mechanical Interface"
+  
+  annotation (
+    Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+      Ellipse(extent={{-100,100},{100,-100}}, lineColor={0,0,0}, fillColor={255,255,255}, fillPattern=FillPattern.Solid),
+      Ellipse(extent={{-60,60},{60,-60}}, lineColor={0,0,0}, fillColor={0,0,0}, fillPattern=FillPattern.Solid)
+    }),
+    Documentation(info="<html>
+<p><strong>What is this?</strong></p>
+<p>This connects rotating mechanical components together.</p>
+<p><strong>Variables:</strong></p>
+<ul>
+    <li><code>w</code>: Angular Velocity (How fast it spins).</li>
+    <li><code>tau</code>: Torque (How hard it twists).</li>
+</ul>
+<p>This is a custom definition using Velocity/Torque instead of the standard Angle/Torque pairing.</p>
+</html>"));
+
+  Real w "Angular Velocity [rad/s]";
+  flow Real tau "Torque [N.m]";
+end RotationalPort;
